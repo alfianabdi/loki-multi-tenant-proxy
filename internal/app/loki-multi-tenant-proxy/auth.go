@@ -5,6 +5,8 @@ import (
 	"crypto/subtle"
 	"net/http"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/angelbarrera92/loki-multi-tenant-proxy/internal/pkg"
 )
 
@@ -20,7 +22,8 @@ const (
 func BasicAuth(handler http.HandlerFunc, authConfig *pkg.Authn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, pass, ok := r.BasicAuth()
-		authorized, orgID := isAuthorized(user, pass, authConfig)
+		orgID := r.Header.Get("X-Scope-OrgID")
+		authorized := isAuthorized(user, pass, orgID, authConfig)
 		if !ok || !authorized {
 			writeUnauthorisedResponse(w)
 			return
@@ -30,13 +33,14 @@ func BasicAuth(handler http.HandlerFunc, authConfig *pkg.Authn) http.HandlerFunc
 	}
 }
 
-func isAuthorized(user string, pass string, authConfig *pkg.Authn) (bool, string) {
+func isAuthorized(user string, pass string, orgID string, authConfig *pkg.Authn) bool {
 	for _, v := range authConfig.Users {
-		if subtle.ConstantTimeCompare([]byte(user), []byte(v.Username)) == 1 && subtle.ConstantTimeCompare([]byte(pass), []byte(v.Password)) == 1 {
-			return true, v.OrgID
+		hashErr := bcrypt.CompareHashAndPassword([]byte(v.Password), []byte(pass))
+		if subtle.ConstantTimeCompare([]byte(user), []byte(v.Username)) == 1 && (subtle.ConstantTimeCompare([]byte(pass), []byte(v.Password)) == 1 || hashErr == nil) && subtle.ConstantTimeCompare([]byte(orgID), []byte(v.OrgID)) == 1 {
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
 func writeUnauthorisedResponse(w http.ResponseWriter) {

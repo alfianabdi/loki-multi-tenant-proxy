@@ -8,8 +8,8 @@ import (
 	"net/url"
 
 	"github.com/angelbarrera92/loki-multi-tenant-proxy/internal/pkg"
-	"github.com/urfave/cli"
 	"github.com/gorilla/mux"
+	"github.com/urfave/cli"
 )
 
 // Serve serves
@@ -24,16 +24,16 @@ func Serve(c *cli.Context) error {
 	authConfig, _ := pkg.ParseConfig(&authConfigLocation)
 
 	rtr := mux.NewRouter()
-	
+
 	// Distributor API
-	rtr.HandleFunc("/api/prom/push", createHandler(lokiServerDistributorURL, authConfig))	
+	rtr.HandleFunc("/api/prom/push", createHandler(lokiServerDistributorURL, authConfig))
 	rtr.HandleFunc("/loki/api/v1/push", createHandler(lokiServerDistributorURL, authConfig))
 	// Querier API
-	rtr.HandleFunc("/api/prom/tail", createHandler(lokiServerQuerierURL, authConfig))	
+	rtr.HandleFunc("/api/prom/tail", createHandler(lokiServerQuerierURL, authConfig))
 	rtr.HandleFunc("/loki/api/v1/tail", createHandler(lokiServerQuerierURL, authConfig))
 	// Query Frontend API
 
-	rtr.PathPrefix("/api/prom/").Handler(createHandler(lokiServerQueryFrontendURL, authConfig))	
+	rtr.PathPrefix("/api/prom/").Handler(createHandler(lokiServerQueryFrontendURL, authConfig))
 	rtr.PathPrefix("/loki/api/").Handler(createHandler(lokiServerQueryFrontendURL, authConfig))
 
 	http.Handle("/", rtr)
