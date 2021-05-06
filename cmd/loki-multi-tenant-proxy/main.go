@@ -33,14 +33,23 @@ func main() {
 					Usage: "Port to expose this loki proxy",
 					Value: 3501,
 				}, cli.StringFlag{
-					Name:  "loki-server",
-					Usage: "Loki server endpoint",
-					Value: "http://localhost:3500",
-				}, cli.StringFlag{
 					Name:  "auth-config",
 					Usage: "AuthN yaml configuration file path",
 					Value: "authn.yaml",
-				},
+				}, cli.StringFlag{
+					Name:  "loki-server-distributor",
+					Usage: "Loki server distributor endpoint",
+					Value: "http://localhost:3100",
+				}, cli.StringFlag{
+					Name:  "loki-server-querier",
+					Usage: "Loki server querier endpoint",
+					Value: "http://localhost:3100",
+				}, 
+				cli.StringFlag{
+					Name:  "loki-server-queryfrontend",
+					Usage: "Loki server queryfrontend endpoint",
+					Value: "http://localhost:3100",
+				}, 
 			},
 		},
 	}
